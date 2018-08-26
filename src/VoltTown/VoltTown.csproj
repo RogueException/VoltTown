@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="*.json" />
+    <None Remove="*.db" />
+    <None Remove="*.db-journal" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.2" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.5" />
+    <PackageReference Include="Hangfire.Core" Version="1.6.20" />
+    <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../../Voltaic.Common/src/Voltaic.Core/Voltaic.Core.csproj" />
+    <ProjectReference Include="../../../Voltaic.Serialization/src/Voltaic.Serialization/Voltaic.Serialization.csproj" />
+    <ProjectReference Include="../../../Voltaic.Serialization/src/Voltaic.Serialization.Json/Voltaic.Serialization.Json.csproj" />
+    <ProjectReference Include="../../../Voltaic.Serialization/src/Voltaic.Serialization.Etf/Voltaic.Serialization.Etf.csproj" />
+    <ProjectReference Include="../../../Voltaic.Serialization/src/Voltaic.Serialization.Utf8/Voltaic.Serialization.Utf8.csproj" />
+    <ProjectReference Include="../../../Wumpus.Net/src/Wumpus.Net.Bot/Wumpus.Net.Bot.csproj" />
+    <ProjectReference Include="../../../Wumpus.Net/src/Wumpus.Net.Core/Wumpus.Net.Core.csproj" />
+    <ProjectReference Include="../../../Wumpus.Net/src/Wumpus.Net.Rest/Wumpus.Net.Rest.csproj" />
+    <ProjectReference Include="../../../Wumpus.Net/src/Wumpus.Net.Gateway/Wumpus.Net.Gateway.csproj" />
+  </ItemGroup>
+</Project>
