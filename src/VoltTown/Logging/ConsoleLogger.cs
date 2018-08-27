@@ -1,21 +1,28 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Voltaic.Logging;
 using Wumpus.Bot;
 
-namespace VoltTown.Components
+namespace VoltTown.Logging
 {
-    public class ConsoleLogger : Component
+    public class ConsoleLogger
     {
         private readonly object _consoleLock = new object();
         private readonly ILogger _logger;
 
-        public ConsoleLogger(LogManager log, Scheduler scheduleManager)
+        public ConsoleLogger(LogManager log)
         {
             _logger = log.CreateLogger("Console");
             log.Output += msg => Write(msg);
+        }
 
-            scheduleManager.ScheduleInMemory("Console", "UpdateStatus", () => UpdateStatus(), TimeSpan.FromMinutes(1));
-            UpdateStatus();
+        public Task Start()
+        {
+            return TaskUtils.RunScheduled(() =>
+            {
+                long bytes = GC.GetTotalMemory(false);
+                Console.Title = $"VoltTown (Wumpus.Net v{WumpusBotClient.Version}) - {bytes} bytes";
+            }, TimeSpan.FromMinutes(1));
         }
 
         private void Write(LogMessage msg)
@@ -27,8 +34,6 @@ namespace VoltTown.Components
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine();
                     Console.WriteLine(msg.ToString());
-                    Console.ResetColor();
-                    Console.ReadLine();
                 }
                 else
                 {
@@ -51,15 +56,9 @@ namespace VoltTown.Components
                             break;
                     }
                     Console.WriteLine(msg.ToString());
-                    Console.ResetColor();
                 }
+                Console.ResetColor();
             }
-        }
-
-        public void UpdateStatus()
-        {
-            long bytes = GC.GetTotalMemory(false);
-            Console.Title = $"VoltTown (Wumpus.Net v{WumpusBotClient.Version}) - {bytes} bytes";
         }
     }
 }

@@ -2,28 +2,35 @@
 using System;
 using Voltaic;
 using Voltaic.Logging;
+using VoltTown.Discord;
+using VoltTown.Game;
 using Wumpus.Requests;
 
-namespace VoltTown.Components
+namespace VoltTown.Commands
 {
-    public class CommandManager : Component
+    public partial class CommandService
     {
         private readonly ILogger _logger;
         private readonly CommandLineApplication _adminApp, _userApp;
+        private readonly GameService _game;
 
         private readonly Utf8String _okHandUtf8 = new Utf8String("👌");
         private readonly Utf8String _noEntryUtf8 = new Utf8String("⛔");
 
-        public CommandManager(LogManager log, Config config, DiscordConnection discord)
+        public CommandService(LogManager log, Config config, DiscordService discord, GameService game)
         {
             _logger = log.CreateLogger("Commands");
+
+            _game = game;
 
             _adminApp = new CommandLineApplication(false);
             _userApp = new CommandLineApplication(false);
 
+            AddCreateCommands();
+
             discord.Gateway.MessageCreate += m =>
             {
-                if (m.Content is null || m.GuildId != config.Discord.GuildId || m.Content.Bytes.Length == 0)
+                if (m.Content is null || m.GuildId != config.Discord.GuildId || m.Content.Bytes.Length < 2)
                     return;
                 var bytes = m.Content.Bytes;
                 if (bytes[0] != '!')
@@ -32,11 +39,18 @@ namespace VoltTown.Components
 
                 try
                 {
-                    bool success;
+                    bool success = false;
+                    var args = new Utf8String(bytes).ToString().Split(' ');
                     if (m.Author.Id == config.Permissions.AdminUserId)
-                        success = AdminExecute(m.Author.Id, new Utf8String(bytes).ToString() ?? "");
-                    else
-                        success = Execute(m.Author.Id, new Utf8String(bytes).ToString() ?? "");
+                    {
+                        ClearState(_adminApp);
+                        success = _adminApp.Execute(args) == 0;
+                    }
+                    if (!success)
+                    {
+                        ClearState(_userApp);
+                        success = _userApp.Execute(args) == 0;
+                    }
 
                     if (success)
                         discord.Rest.CreateReactionAsync(m.ChannelId, m.Id, _okHandUtf8);
@@ -54,25 +68,6 @@ namespace VoltTown.Components
             };
         }
 
-        public bool AdminExecute(ulong userId, string input)
-        {
-            var args = input.Split(' ');
-
-            ClearState(_adminApp);
-            if (_adminApp.Execute(args) == 0)
-                return true;
-
-            ClearState(_userApp);
-            return _userApp.Execute(args) == 0;
-        }
-        public bool Execute(ulong userId, string input)
-        {
-            var args = input.Split(' ');
-
-            ClearState(_userApp);
-            return _userApp.Execute(args) == 0;
-        }
-
         private void ClearState(CommandLineApplication app)
         {
             // CommandLineApplication wasn't designed to be called multiple times, so we need to clear state ourselves
@@ -82,13 +77,9 @@ namespace VoltTown.Components
                 ClearState(cmd);
         }
 
-        public void AdminCommand(string name, Action<CommandLineApplication> configuration)
+        private void AddCommands()
         {
-            _adminApp.Command(name, configuration);
-        }
-        public void Command(string name, Action<CommandLineApplication> configuration)
-        {
-            _userApp.Command(name, configuration);
+            AddCreateCommands();
         }
     }
 }

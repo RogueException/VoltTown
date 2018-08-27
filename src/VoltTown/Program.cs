@@ -1,7 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Voltaic.Logging;
-using VoltTown.Components;
+using VoltTown.Commands;
 using VoltTown.Data;
+using VoltTown.Discord;
+using VoltTown.Game;
+using VoltTown.Logging;
 
 namespace VoltTown
 {
@@ -15,18 +19,18 @@ namespace VoltTown
             var db = GameDbContext.Load();
 
             var log = new LogManager(LogSeverity.Debug);
-            var scheduler = new Scheduler(log);
-            var console = new ConsoleLogger(log, scheduler);
+            var console = new ConsoleLogger(log);
 
-            var discord = new DiscordConnection(log, config);
-            var channels = new DiscordChannelSync(log, config, db, discord);
-            var members = new DiscordMemberSync(log, config, db, discord);
+            var game = new GameService(log, db);
 
-            var commands = new CommandManager(log, config, discord);
-            var game = new GameManager(log, db, channels, members, commands);
+            var discord = new DiscordService(log, config, db, game);
+            var gatekeeper = new DiscordGatekeeper(log, config, db, discord);
+
+            var commands = new CommandService(log, config, discord, game);
 
             var task = await Task.WhenAny(discord.Run());
             await task.ConfigureAwait(false); // Throw if exception
+            Console.ReadLine();
         }
     }
 }

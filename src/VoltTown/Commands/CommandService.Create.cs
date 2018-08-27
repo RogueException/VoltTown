@@ -1,21 +1,12 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
-using System;
-using System.Linq;
-using Voltaic.Logging;
-using VoltTown.Data;
-using VoltTown.Data.Game;
 
-namespace VoltTown.Components
+namespace VoltTown.Commands
 {
-    public class GameManager : Component
+    public partial class CommandService
     {
-        private readonly ILogger _logger;
-
-        public GameManager(LogManager log, GameDbContext db, DiscordChannelSync channels, DiscordMemberSync members, CommandManager commands)
+        private void AddCreateCommands()
         {
-            _logger = log.CreateLogger("Game");
-
-            commands.AdminCommand("create", cmd =>
+            _adminApp.Command("create", cmd =>
             {
                 cmd.Command("area", areaCmd =>
                 {
@@ -23,10 +14,7 @@ namespace VoltTown.Components
                         .Accepts(v => v.MinLength(4).MaxLength(24));
                     areaCmd.OnExecute(() =>
                     {
-                        var area = new Area { Name = name.Value };
-                        channels.CreateArea(area);
-                        db.Areas.Add(area);
-                        db.SaveChanges();
+                        _game.CreateArea(name.Value);
                         return 0;
                     });
                 });
@@ -38,11 +26,7 @@ namespace VoltTown.Components
                         .Accepts(v => v.MinLength(3).MaxLength(3));
                     plotCmd.OnExecute(() =>
                     {
-                        var area = db.Areas.Single(x => x.Name.Equals(areaName.Value, StringComparison.OrdinalIgnoreCase));
-                        var plot = new Plot { Name = "plot", Area = area, Address = ushort.Parse(address.Value) };
-                        channels.CreatePlot(plot, area.DiscordCategoryId);
-                        db.Plots.Add(plot);
-                        db.SaveChanges();
+                        _game.CreatePlot(areaName.Value, int.Parse(address.Value));
                         return 0;
                     });
                 });

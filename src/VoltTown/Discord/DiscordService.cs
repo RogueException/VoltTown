@@ -3,25 +3,32 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Voltaic;
 using Voltaic.Logging;
+using VoltTown.Data;
+using VoltTown.Game;
 using Wumpus;
 using Wumpus.Bot;
 using Wumpus.Entities;
 using Wumpus.Requests;
 
-namespace VoltTown.Components
+namespace VoltTown.Discord
 {
-    public class DiscordConnection : Component
+    public partial class DiscordService
     {
         private readonly ILogger _logger;
         private readonly WumpusBotClient _client;
+        private readonly Config _config;
+        private readonly GameDbContext _db;
 
         public Snowflake BotUserId { get; set; }
         public WumpusRestClient Rest => _client.Rest;
         public WumpusGatewayClient Gateway => _client.Gateway;
 
-        public DiscordConnection(LogManager log, Config config)
+        public DiscordService(LogManager log, Config config, GameDbContext db, GameService game)
         {
             _logger = log.CreateLogger("Discord");
+
+            _config = config;
+            _db = db;
 
             _client = new WumpusBotClient(logManager: log)
             {
@@ -31,9 +38,27 @@ namespace VoltTown.Components
             {
                 BotUserId = r.User.Id;
             };
+            Gateway.GuildCreate += g =>
+            {
+                if (g.Id != config.Discord.GuildId || g.Unavailable != false)
+                    return;
+                if (g.Channels.IsSpecified)
+                {
+                    TaskUtils.Execute(async () =>
+                    {
+                        Sync(g.Channels.Value);
+                        await db.SaveChangesAsync();
+                    });
+                }
+            };
+
+            game.AreaAdded += a => AddOrUpdateAreaCategory(a);
+            game.AreaUpdated += a => AddOrUpdateAreaCategory(a);
+            game.PlotAdded += p => AddOrUpdatePlotChannel(p);
+            game.PlotUpdated += p => AddOrUpdatePlotChannel(p);
         }
 
-        public override async Task Run()
+        public async Task Run()
         {
             try
             {

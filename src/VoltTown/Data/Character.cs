@@ -7,7 +7,7 @@ namespace VoltTown.Data.Game
     {
         public int CharacterId { get; set; }
 
-        //public string Name { get; set; }
+        public ulong DiscordUserId { get; set; }
 
         [InverseProperty("Owner")]
         public List<Plot> OwnedPlots { get; set; }

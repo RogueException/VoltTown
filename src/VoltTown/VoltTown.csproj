@@ -12,8 +12,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.1.2" />
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.2.5" />
-    <PackageReference Include="Hangfire.Core" Version="1.6.20" />
-    <PackageReference Include="Hangfire.SQLite" Version="1.4.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../../Voltaic.Common/src/Voltaic.Core/Voltaic.Core.csproj" />
