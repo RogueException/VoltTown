@@ -1,5 +1,4 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using Voltaic.Logging;
@@ -8,19 +7,13 @@ using VoltTown.Data.Game;
 
 namespace VoltTown.Components
 {
-    public class GameManager
+    public class GameManager : Component
     {
         private readonly ILogger _logger;
-        private readonly GameDbContext _db;
-        private readonly DiscordManager _discord;
 
-
-        public GameManager(LogManager log, GameDbContext db, DiscordManager discord, CommandManager commands)
+        public GameManager(LogManager log, GameDbContext db, DiscordChannelSync channels, DiscordMemberSync members, CommandManager commands)
         {
             _logger = log.CreateLogger("Game");
-
-            _db = db;
-            _discord = discord;
 
             commands.AdminCommand("create", cmd =>
             {
@@ -31,9 +24,9 @@ namespace VoltTown.Components
                     areaCmd.OnExecute(() =>
                     {
                         var area = new Area { Name = name.Value };
-                        _discord.CreateAreaChannel(area);
-                        _db.Areas.Add(area);
-                        _db.SaveChanges();
+                        channels.CreateArea(area);
+                        db.Areas.Add(area);
+                        db.SaveChanges();
                         return 0;
                     });
                 });
@@ -45,11 +38,11 @@ namespace VoltTown.Components
                         .Accepts(v => v.MinLength(3).MaxLength(3));
                     plotCmd.OnExecute(() =>
                     {
-                        var area = _db.Areas.Single(x => x.Name.Equals(areaName.Value, StringComparison.OrdinalIgnoreCase));
+                        var area = db.Areas.Single(x => x.Name.Equals(areaName.Value, StringComparison.OrdinalIgnoreCase));
                         var plot = new Plot { Name = "plot", Area = area, Address = ushort.Parse(address.Value) };
-                        _discord.CreatePlotChannel(plot, area.DiscordCategoryId);
-                        _db.Plots.Add(plot);
-                        _db.SaveChanges();
+                        channels.CreatePlot(plot, area.DiscordCategoryId);
+                        db.Plots.Add(plot);
+                        db.SaveChanges();
                         return 0;
                     });
                 });

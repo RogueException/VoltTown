@@ -4,12 +4,12 @@ using Wumpus.Bot;
 
 namespace VoltTown.Components
 {
-    public class ConsoleManager
+    public class ConsoleLogger : Component
     {
         private readonly object _consoleLock = new object();
         private readonly ILogger _logger;
 
-        public ConsoleManager(LogManager log, JobManager scheduleManager)
+        public ConsoleLogger(LogManager log, Scheduler scheduleManager)
         {
             _logger = log.CreateLogger("Console");
             log.Output += msg => Write(msg);

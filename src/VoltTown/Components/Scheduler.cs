@@ -9,16 +9,16 @@ using Voltaic.Logging;
 
 namespace VoltTown.Components
 {
-    public class JobManager : IDisposable
+    public class Scheduler : Component, IDisposable
     {
         private readonly ILogger _logger;
         private readonly BackgroundJobServer _server;
         private readonly Dictionary<string, Task> _tasks;
         private readonly CancellationTokenSource _cts;
 
-        public JobManager(LogManager log)
+        public Scheduler(LogManager log)
         {
-            _logger = log.CreateLogger("Jobs");
+            _logger = log.CreateLogger("Scheduler");
 
             _cts = new CancellationTokenSource();
             _tasks = new Dictionary<string, Task>();
@@ -48,6 +48,7 @@ namespace VoltTown.Components
             else
                 throw new NotSupportedException("Unsupported TimeSpan value");
         }
+
         public void ScheduleInMemory(string componentId, string jobId, Action action, TimeSpan timeSpan)
         {
             jobId = $"{componentId}.{jobId}";

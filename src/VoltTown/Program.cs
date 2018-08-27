@@ -15,11 +15,15 @@ namespace VoltTown
             var db = GameDbContext.Load();
 
             var log = new LogManager(LogSeverity.Debug);
-            var scheduler = new JobManager(log);
-            var console = new ConsoleManager(log, scheduler);
-            var commands = new CommandManager(log);
-            var discord = new DiscordManager(log, config, db, commands);
-            var game = new GameManager(log, db, discord, commands);
+            var scheduler = new Scheduler(log);
+            var console = new ConsoleLogger(log, scheduler);
+
+            var discord = new DiscordConnection(log, config);
+            var channels = new DiscordChannelSync(log, config, db, discord);
+            var members = new DiscordMemberSync(log, config, db, discord);
+
+            var commands = new CommandManager(log, config, discord);
+            var game = new GameManager(log, db, channels, members, commands);
 
             var task = await Task.WhenAny(discord.Run());
             await task.ConfigureAwait(false); // Throw if exception

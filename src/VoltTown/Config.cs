@@ -13,14 +13,30 @@ namespace VoltTown
         {
             [ModelProperty("token")]
             public string Token { get; set; }
-            [ModelProperty("admin_user_id")]
-            public ulong AdminUserId { get; set; }
             [ModelProperty("guild_id")]
             public ulong GuildId { get; set; }
-            [ModelProperty("resident_role_id")]
-            public ulong ResidentRoleId { get; set; }
             [ModelProperty("ignored_channel_ids")]
             public ulong[] IgnoredChannelIds { get; set; }
+        }
+
+        [ModelProperty("permissions")]
+        public PermissionsConfig Permissions { get; set; }
+        public class PermissionsConfig
+        {
+            [ModelProperty("admin_user_id")]
+            public ulong AdminUserId { get; set; }
+        }
+
+        [ModelProperty("entrance")]
+        public EntranceConfig Entrance { get; set; }
+        public class EntranceConfig
+        {
+            [ModelProperty("role_id")]
+            public ulong RoleId { get; set; }
+            [ModelProperty("message_id")]
+            public ulong MessageId { get; set; }
+            [ModelProperty("reaction")]
+            public string Reaction { get; set; }
         }
 
         public static Config Read(string path)
